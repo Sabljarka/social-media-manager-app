@@ -6,7 +6,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemAvatar,
   Avatar,
   IconButton,
   TextField,
@@ -17,37 +16,24 @@ import {
   DialogActions,
   Card,
   CardContent,
-  CardActions,
   Chip,
-  Stack,
   CircularProgress,
   Grid,
-  Divider,
   Snackbar,
   Alert,
+  Divider,
 } from '@mui/material';
 import {
   ThumbUp,
-  Comment,
-  Share,
-  MoreVert,
   Delete,
   Add,
-  Person,
-  AccessTime,
-  Favorite,
-  ChatBubble,
   Reply,
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { 
   setPosts, 
-  addPost, 
-  updatePost, 
-  deletePost, 
-  addComment, 
-  updateComment,
+  addPost,
   deleteComment,
   setFacebookPages,
   setSelectedPage,
@@ -57,7 +43,6 @@ import {
 } from '../store/slices/socialSlice';
 import { FacebookPage as FacebookPageType, Post, Comment as CommentType } from '../store/slices/socialSlice';
 import facebookService, { FacebookPost } from '../services/facebookService';
-import { formatDistanceToNow } from 'date-fns';
 import { useTheme } from '@mui/material/styles';
 import { socialService } from '../services/socialService';
 import socketService from '../services/socketService';

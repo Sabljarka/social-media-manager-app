@@ -254,7 +254,7 @@ const InstagramPage: React.FC = () => {
             </Button>
           </Box>
 
-          <Grid container spacing={2}>
+          <Grid container spacing={3} component="div">
             {formattedPosts.map((post) => (
               <Grid item xs={12} sm={6} md={4} key={post.id}>
                 <Paper sx={{ p: 2, height: '100%' }}>

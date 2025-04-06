@@ -1,4 +1,4 @@
-import { io, Socket } from 'socket.io-client';
+import io from 'socket.io-client';
 import { store } from '../store';
 import { addNotification, Notification as StoreNotification } from '../store/slices/notificationSlice';
 
@@ -12,7 +12,7 @@ interface CommentData {
 }
 
 class SocketService {
-  private socket: Socket | null = null;
+  private socket: ReturnType<typeof io> | null = null;
   private static instance: SocketService;
 
   private constructor() {}
@@ -51,7 +51,7 @@ class SocketService {
 
     // Listen for new comments
     this.socket.on('new_comment', (data: CommentData) => {
-      const { postId, comment } = data;
+      const { comment } = data;
       // Handle new comment (update UI, show notification, etc.)
       console.log('New comment:', comment);
     });
