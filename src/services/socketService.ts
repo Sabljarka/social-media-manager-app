@@ -2,6 +2,21 @@ import { io, Socket } from 'socket.io-client';
 import { store } from '../store';
 import { addNotification } from '../store/slices/notificationSlice';
 
+interface Notification {
+  type: string;
+  message: string;
+  timestamp: string;
+}
+
+interface CommentData {
+  postId: string;
+  comment: {
+    id: string;
+    content: string;
+    author: string;
+  };
+}
+
 class SocketService {
   private socket: Socket | null = null;
   private static instance: SocketService;
@@ -15,19 +30,17 @@ class SocketService {
     return SocketService.instance;
   }
 
-  connect(userId: string) {
+  connect(url: string): void {
     if (this.socket) {
       this.disconnect();
     }
 
-    this.socket = io('http://localhost:3001', {
-      query: { userId },
-    });
+    this.socket = io(url);
 
     this.setupListeners();
   }
 
-  disconnect() {
+  disconnect(): void {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
@@ -43,7 +56,7 @@ class SocketService {
     });
 
     // Listen for new comments
-    this.socket.on('newComment', (data) => {
+    this.socket.on('new_comment', (data) => {
       const { postId, comment } = data;
       // Handle new comment (update UI, show notification, etc.)
       console.log('New comment:', comment);
@@ -76,6 +89,24 @@ class SocketService {
       this.socket.emit('leave', roomId);
     }
   }
+
+  public onNotification(callback: (notification: Notification) => void): void {
+    if (this.socket) {
+      this.socket.on('notification', callback);
+    }
+  }
+
+  public onNewComment(callback: (data: CommentData) => void): void {
+    if (this.socket) {
+      this.socket.on('new_comment', callback);
+    }
+  }
+
+  public onError(callback: (error: Error) => void): void {
+    if (this.socket) {
+      this.socket.on('error', callback);
+    }
+  }
 }
 
-export const socketService = SocketService.getInstance(); 
+export default SocketService; 

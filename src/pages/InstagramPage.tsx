@@ -186,6 +186,29 @@ const InstagramPage: React.FC = () => {
 
   const selectedAccountData = instagramAccounts.find(account => account.id === selectedAccount);
 
+  const formattedComments: Comment[] = selectedAccountData?.posts.map((post: any) => ({
+    id: post.id,
+    postId: post.id,
+    author: post.from?.name || 'Unknown User',
+    content: post.text,
+    timestamp: post.timestamp,
+    isHidden: false,
+    replies: [],
+    likes: post.like_count || 0,
+  })) || [];
+
+  const formattedPosts: Post[] = selectedAccountData?.posts.map((post: any) => ({
+    id: post.id,
+    pageId: selectedAccount,
+    content: post.caption,
+    mediaUrl: post.media_url,
+    timestamp: post.timestamp,
+    likes: post.like_count || 0,
+    shares: 0,
+    comments: [],
+    isPublished: true,
+  })) || [];
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -232,7 +255,7 @@ const InstagramPage: React.FC = () => {
           </Box>
 
           <Grid container spacing={2}>
-            {selectedAccountData.posts.map((post) => (
+            {formattedPosts.map((post) => (
               <Grid item xs={12} sm={6} md={4} key={post.id}>
                 <Paper sx={{ p: 2, height: '100%' }}>
                   {post.mediaUrl && (
@@ -262,13 +285,13 @@ const InstagramPage: React.FC = () => {
                   </Typography>
 
                   {/* Comments Section */}
-                  {post.comments.length > 0 && (
+                  {formattedComments.length > 0 && (
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle2" gutterBottom>
                         Comments
                       </Typography>
                       <List>
-                        {post.comments.map((comment) => (
+                        {formattedComments.map((comment) => (
                           <ListItem key={comment.id} sx={{ py: 0.5 }}>
                             <ListItemText
                               primary={comment.author}

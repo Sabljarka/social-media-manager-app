@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -8,55 +6,52 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemAvatar,
+  Avatar,
   IconButton,
+  TextField,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Chip,
-  Avatar,
-  Divider,
-  useTheme,
-  Grid,
   Card,
   CardContent,
-  Snackbar,
-  Alert,
+  CardActions,
+  Chip,
+  Stack,
   CircularProgress,
+  Grid,
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  Reply as ReplyIcon,
-  Edit as EditIcon,
-  ThumbUp as ThumbUpIcon,
+  ThumbUp,
+  Comment,
+  Share,
+  MoreVert,
+  Delete,
+  Add,
+  Person,
+  AccessTime,
+  Favorite,
+  ChatBubble,
+  Reply,
 } from '@mui/icons-material';
-import { FacebookPage as FacebookPageType, Post, Comment } from '../store/slices/socialSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { setPosts, addPost, updatePost, deletePost, addComment, updateComment } from '../store/slices/socialSlice';
+import { FacebookPage as FacebookPageType, Post, Comment as CommentType } from '../store/slices/socialSlice';
+import facebookService from '../services/facebookService';
+import { formatDistanceToNow } from 'date-fns';
+import { useTheme } from '@mui/material/styles';
 import {
   setFacebookPages,
   setSelectedPage,
-  addPost,
-  updatePost,
-  deletePost,
-  addComment,
-  updateComment,
-  deleteComment,
   addFacebookPage,
   removeFacebookPage,
   updateFacebookPage,
-  setPosts,
 } from '../store/slices/socialSlice';
 import { socialService } from '../services/socialService';
 import { socketService } from '../services/socketService';
-import facebookService, { FacebookPost } from '../services/facebookService';
 import type { FacebookPage } from '../services/facebookService';
 
 const FacebookPage: React.FC = () => {
@@ -75,7 +70,7 @@ const FacebookPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingPosts, setLoadingPosts] = useState<{ [key: string]: boolean }>({});
   const [posts, setLocalPosts] = useState<{ [key: string]: Post[] }>({});
-  const [comments, setComments] = useState<{ [key: string]: Comment[] }>({});
+  const [comments, setComments] = useState<{ [key: string]: CommentType[] }>({});
   const [expandedComments, setExpandedComments] = useState<{ [key: string]: boolean }>({});
   const [commentFilter, setCommentFilter] = useState<{ [key: string]: 'all' | 'new' | 'relevant' }>({});
 
@@ -117,7 +112,7 @@ const FacebookPage: React.FC = () => {
           console.log(`Comments for post ${post.id}:`, comments);
 
           // Format comments with user information
-          const formattedComments: Comment[] = comments.map((comment: any) => {
+          const formattedComments: CommentType[] = comments.map((comment: any) => {
             console.log('Processing comment:', comment);
             console.log('Comment author:', comment.from);
             console.log('Comment author picture:', comment.from?.picture);
@@ -297,7 +292,7 @@ const FacebookPage: React.FC = () => {
                 </Typography>
                 {comment.likes > 0 && (
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <ThumbUpIcon sx={{ fontSize: 16, color: 'primary.main', mr: 0.5 }} />
+                    <ThumbUp sx={{ fontSize: 16, color: 'primary.main', mr: 0.5 }} />
                     <Typography variant="caption" color="text.secondary">
                       {comment.likes}
                     </Typography>
@@ -450,7 +445,7 @@ const FacebookPage: React.FC = () => {
 
   const handleAddCommentToPost = (pageId: string, postId: string) => {
     if (newCommentContent[postId]) {
-      const newComment: Comment = {
+      const newComment: CommentType = {
         id: Date.now().toString(),
         postId: postId,
         author: 'Current User',
@@ -503,7 +498,7 @@ const FacebookPage: React.FC = () => {
             />
           ))}
           <Chip
-            icon={<AddIcon />}
+            icon={<Add />}
             label="Add New Page"
             onClick={() => setNewPageDialogOpen(true)}
             variant="outlined"
@@ -519,7 +514,7 @@ const FacebookPage: React.FC = () => {
             </Typography>
             <Button
               variant="contained"
-              startIcon={<AddIcon />}
+              startIcon={<Add />}
               onClick={() => setNewPostDialogOpen(true)}
             >
               New Post
@@ -542,7 +537,7 @@ const FacebookPage: React.FC = () => {
                         setNewCommentDialogOpen(true);
                       }}
                     >
-                      <ReplyIcon />
+                      <Reply />
                     </IconButton>
                   </ListItem>
 
@@ -557,7 +552,7 @@ const FacebookPage: React.FC = () => {
                           <ListItem key={comment.id}>
                             <ListItemText primary={comment.content} />
                             <IconButton edge="end" onClick={() => handleDeleteComment(post, comment.id)}>
-                              <DeleteIcon />
+                              <Delete />
                             </IconButton>
                           </ListItem>
                         ))}
@@ -729,7 +724,7 @@ const FacebookPage: React.FC = () => {
                             <Button
                               size="small"
                               onClick={() => handleToggleComments(post.id)}
-                              startIcon={<ReplyIcon />}
+                              startIcon={<Reply />}
                             >
                               {post.comments.length} Comments
                             </Button>
