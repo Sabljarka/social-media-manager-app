@@ -113,6 +113,7 @@ const InstagramPage: React.FC = () => {
         mediaUrl: selectedImage ? URL.createObjectURL(selectedImage) : undefined,
         timestamp: new Date().toISOString(),
         likes: 0,
+        shares: 0,
         comments: [],
         isPublished: true,
       };
@@ -133,6 +134,7 @@ const InstagramPage: React.FC = () => {
         timestamp: new Date().toISOString(),
         isHidden: false,
         replies: [],
+        likes: 0
       };
       dispatch(addComment({
         pageId: selectedAccount!,
@@ -190,6 +192,7 @@ const InstagramPage: React.FC = () => {
     id: post.id,
     postId: post.id,
     author: post.from?.name || 'Unknown User',
+    authorPicture: post.from?.picture?.data?.url || undefined,
     content: post.text,
     timestamp: post.timestamp,
     isHidden: false,
@@ -254,9 +257,9 @@ const InstagramPage: React.FC = () => {
             </Button>
           </Box>
 
-          <Grid container spacing={3} component="div">
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
             {formattedPosts.map((post) => (
-              <Grid item xs={12} sm={6} md={4} key={post.id}>
+              <Box key={post.id}>
                 <Paper sx={{ p: 2, height: '100%' }}>
                   {post.mediaUrl && (
                     <Box sx={{ mb: 2, position: 'relative', paddingTop: '100%' }}>
@@ -329,9 +332,9 @@ const InstagramPage: React.FC = () => {
                     </Button>
                   </Box>
                 </Paper>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         </>
       ) : (
         <Typography>Please select an account to view posts</Typography>
