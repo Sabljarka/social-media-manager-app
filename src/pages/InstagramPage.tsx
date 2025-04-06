@@ -72,6 +72,7 @@ const InstagramPage: React.FC = () => {
             mediaUrl: 'https://picsum.photos/500/500',
             timestamp: '2024-03-20T10:00:00',
             likes: 100,
+            shares: 0,
             comments: [
               {
                 id: '1',
@@ -81,6 +82,7 @@ const InstagramPage: React.FC = () => {
                 timestamp: '2024-03-20T10:05:00',
                 isHidden: false,
                 replies: [],
+                likes: 0
               },
             ],
             isPublished: true,
@@ -202,7 +204,7 @@ const InstagramPage: React.FC = () => {
 
   const formattedPosts: Post[] = selectedAccountData?.posts.map((post: any) => ({
     id: post.id,
-    pageId: selectedAccount,
+    pageId: selectedAccount || '',
     content: post.caption,
     mediaUrl: post.media_url,
     timestamp: post.timestamp,
