@@ -1,12 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { store } from '../store';
-import { addNotification } from '../store/slices/notificationSlice';
-
-interface Notification {
-  type: string;
-  message: string;
-  timestamp: string;
-}
+import { addNotification, Notification as StoreNotification } from '../store/slices/notificationSlice';
 
 interface CommentData {
   postId: string;
@@ -51,12 +45,12 @@ class SocketService {
     if (!this.socket) return;
 
     // Listen for new notifications
-    this.socket.on('notification', (notification) => {
+    this.socket.on('notification', (notification: StoreNotification) => {
       store.dispatch(addNotification(notification));
     });
 
     // Listen for new comments
-    this.socket.on('new_comment', (data) => {
+    this.socket.on('new_comment', (data: CommentData) => {
       const { postId, comment } = data;
       // Handle new comment (update UI, show notification, etc.)
       console.log('New comment:', comment);
@@ -71,7 +65,7 @@ class SocketService {
       console.log('Disconnected from socket server');
     });
 
-    this.socket.on('error', (error) => {
+    this.socket.on('error', (error: Error) => {
       console.error('Socket error:', error);
     });
   }
@@ -90,7 +84,7 @@ class SocketService {
     }
   }
 
-  public onNotification(callback: (notification: Notification) => void): void {
+  public onNotification(callback: (notification: StoreNotification) => void): void {
     if (this.socket) {
       this.socket.on('notification', callback);
     }
