@@ -6,6 +6,7 @@ interface SocialState {
   selectedAccount: string | null;
   posts: any[];
   comments: any[];
+  notifications: any[];
 }
 
 const initialState: SocialState = {
@@ -14,6 +15,7 @@ const initialState: SocialState = {
   selectedAccount: null,
   posts: [],
   comments: [],
+  notifications: [],
 };
 
 const socialSlice = createSlice({
@@ -35,6 +37,9 @@ const socialSlice = createSlice({
     setComments: (state, action: PayloadAction<any[]>) => {
       state.comments = action.payload;
     },
+    setNotifications: (state, action: PayloadAction<any[]>) => {
+      state.notifications = action.payload;
+    },
   },
 });
 
@@ -44,6 +49,7 @@ export const {
   setSelectedAccount,
   setPosts,
   setComments,
+  setNotifications,
 } = socialSlice.actions;
 
 export default socialSlice.reducer; 
