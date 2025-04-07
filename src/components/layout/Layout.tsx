@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -14,6 +14,8 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
+  Container,
+  Divider,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -72,7 +74,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <CssBaseline />
       <AppBar
         position="fixed"
@@ -102,18 +104,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
         <Drawer
-          variant={isMobile ? 'temporary' : 'permanent'}
+          variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
             keepMounted: true,
           }}
           sx={{
+            display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
             },
           }}
+        >
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
+          }}
+          open
         >
           {drawer}
         </Drawer>
@@ -124,10 +140,39 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+          mt: '64px',
         }}
       >
-        <Toolbar />
         {children}
+      </Box>
+      <Box
+        component="footer"
+        sx={{
+          py: 3,
+          px: 2,
+          mt: 'auto',
+          backgroundColor: (theme) => theme.palette.grey[100],
+        }}
+      >
+        <Container maxWidth="sm">
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+            <Link to="/privacy-policy" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Typography variant="body2" color="text.secondary">
+                Privacy Policy
+              </Typography>
+            </Link>
+            <Divider orientation="vertical" flexItem />
+            <Link to="/terms-of-service" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Typography variant="body2" color="text.secondary">
+                Terms of Service
+              </Typography>
+            </Link>
+          </Box>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+            © {new Date().getFullYear()} Social Media Manager. All rights reserved.
+          </Typography>
+        </Container>
       </Box>
     </Box>
   );
