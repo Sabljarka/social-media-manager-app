@@ -41,7 +41,7 @@ import {
   removeFacebookPage,
   updateFacebookPage,
 } from '../store/slices/socialSlice';
-import { FacebookPage as FacebookPageType, Post, Comment as CommentType } from '../store/slices/socialSlice';
+import { FacebookPage as FacebookPageType, Post, Comment as CommentType, SocialState } from '../store/slices/socialSlice';
 import facebookService, { FacebookPost } from '../services/facebookService';
 import { useTheme } from '@mui/material/styles';
 import { socialService } from '../services/socialService';
@@ -51,7 +51,9 @@ import type { FacebookPage } from '../services/facebookService';
 const FacebookPage: React.FC = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { facebookPages, selectedPage } = useSelector((state: RootState) => state.social);
+  const facebookPages = useSelector((state: RootState) => state.social.facebookPages);
+  const selectedPage = useSelector((state: RootState) => (state.social as SocialState).selectedPage);
+  const selectedPageData = selectedPage ? facebookPages.find(p => p.id === selectedPage) : null;
   const [newPostDialogOpen, setNewPostDialogOpen] = useState(false);
   const [newCommentDialogOpen, setNewCommentDialogOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -80,11 +82,20 @@ const FacebookPage: React.FC = () => {
     };
   }, [facebookPages]);
 
+  useEffect(() => {
+    if (selectedPage) {
+      const pagePosts = facebookPages.find(p => p.id === selectedPage)?.posts || [];
+      setLocalPosts(prev => ({ ...prev, [selectedPage]: pagePosts }));
+    }
+  }, [selectedPage, facebookPages]);
+
   const handleLoadPosts = async (pageId: string) => {
     const page = facebookPages.find(p => p.id === pageId);
     if (!page) return;
 
     setLoadingPosts(prev => ({ ...prev, [pageId]: true }));
+    setError(null);
+
     try {
       console.log('Validating token...');
       const isValid = await facebookService.validateToken(page.accessToken);
@@ -101,32 +112,20 @@ const FacebookPage: React.FC = () => {
       
       if (posts && posts.length > 0) {
         const formattedPosts: Post[] = await Promise.all(posts.map(async (post: FacebookPost) => {
-          // Fetch comments for this post
           const comments = await facebookService.getPostComments(post.id, page.accessToken);
           console.log(`Comments for post ${post.id}:`, comments);
 
-          // Format comments with user information
-          const formattedComments: CommentType[] = comments.map((comment: any) => {
-            console.log('Processing comment:', comment);
-            console.log('Comment author:', comment.from);
-            console.log('Comment author picture:', comment.from?.picture);
-            
-            // Get user information from the comment
-            const author = comment.from?.name || 'Unknown User';
-            const authorPicture = comment.from?.picture?.data?.url || '/default-avatar.png';
-            
-            return {
-              id: comment.id,
-              postId: post.id,
-              author: author,
-              authorPicture: authorPicture,
-              content: comment.message,
-              timestamp: comment.created_time,
-              isHidden: false,
-              replies: [],
-              likes: comment.like_count || 0,
-            };
-          });
+          const formattedComments: CommentType[] = comments.map((comment: any) => ({
+            id: comment.id,
+            postId: post.id,
+            author: comment.from?.name || 'Unknown User',
+            authorPicture: comment.from?.picture?.data?.url || '/default-avatar.png',
+            content: comment.message,
+            timestamp: comment.created_time,
+            isHidden: false,
+            replies: [],
+            likes: comment.like_count || 0,
+          }));
 
           return {
             id: post.id,
@@ -142,6 +141,7 @@ const FacebookPage: React.FC = () => {
 
         console.log('Dispatching formatted posts with comments:', formattedPosts);
         dispatch(setPosts({ pageId: page.id, posts: formattedPosts }));
+        setLocalPosts(prev => ({ ...prev, [pageId]: formattedPosts }));
       } else {
         console.log(`No posts found for page ${page.name}`);
         setError(`No posts found for ${page.name}`);
@@ -495,8 +495,6 @@ const FacebookPage: React.FC = () => {
     }
   };
 
-  const selectedPageData = facebookPages.find(page => page.id === selectedPage);
-
   return (
     <Box sx={{ 
       p: 2, 
@@ -518,249 +516,103 @@ const FacebookPage: React.FC = () => {
         Facebook Pages
       </Typography>
 
-      {/* Page Selection */}
-      <Box sx={{ 
-        mb: 3,
-        p: 2,
-        bgcolor: 'background.paper',
-        borderRadius: 2,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-      }}>
+      {/* Error message */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Page selection */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Select a Page
+        </Typography>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           {facebookPages.map((page) => (
             <Chip
               key={page.id}
               label={page.name}
               onClick={() => handlePageSelect(page.id)}
+              onDelete={() => handleRemovePage(page.id)}
               color={selectedPage === page.id ? 'primary' : 'default'}
-              size="small"
-              sx={{ 
-                borderRadius: 1,
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                },
-                '& .MuiChip-avatar': { width: 24, height: 24, fontSize: '0.75rem' }
-              }}
-              avatar={<Avatar sx={{ width: 24, height: 24 }}>{page.name[0]}</Avatar>}
+              avatar={<Avatar src={page.picture} />}
+              sx={{ mb: 1 }}
             />
           ))}
           <Chip
-            icon={<Add sx={{ fontSize: 16 }} />}
-            label="Add Page"
+            label="Add New Page"
             onClick={() => setNewPageDialogOpen(true)}
+            color="primary"
             variant="outlined"
-            size="small"
-            sx={{ 
-              borderRadius: 1,
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }
-            }}
+            icon={<Add />}
           />
         </Box>
       </Box>
 
-      {selectedPageData ? (
-        <>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            mb: 2,
-            p: 2,
-            bgcolor: 'background.paper',
-            borderRadius: 2,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-            transition: 'all 0.2s ease-in-out',
-            '&:hover': {
-              boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-            }
-          }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-              {selectedPageData.name}
+      {/* Selected page content */}
+      {selectedPage && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6">
+              {selectedPageData?.name}
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => handleLoadPosts(selectedPageData.id)}
-                disabled={loadingPosts[selectedPageData.id]}
-                sx={{ 
-                  textTransform: 'none',
-                  minWidth: 100,
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }
-                }}
-              >
-                {loadingPosts[selectedPageData.id] ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  'Load Posts'
-                )}
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<Add sx={{ fontSize: 16 }} />}
-                onClick={() => setNewPostDialogOpen(true)}
-                sx={{ 
-                  textTransform: 'none',
-                  minWidth: 100,
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }
-                }}
-              >
-                New Post
-              </Button>
-            </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleLoadPosts(selectedPage)}
+              disabled={loadingPosts[selectedPage]}
+              startIcon={loadingPosts[selectedPage] ? <CircularProgress size={20} /> : null}
+            >
+              {loadingPosts[selectedPage] ? 'Loading...' : 'Load Posts'}
+            </Button>
           </Box>
 
-          {loadingPosts[selectedPageData.id] ? (
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              p: 3,
-              animation: 'pulse 1.5s infinite'
-            }}>
-              <CircularProgress size={24} />
+          {/* Posts */}
+          {loadingPosts[selectedPage] ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
             </Box>
-          ) : (
+          ) : posts[selectedPage]?.length > 0 ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {selectedPageData.posts.map((post) => (
-                <Card className="post-enter card-hover" sx={{ mb: 2 }}>
+              {posts[selectedPage].map((post) => (
+                <Card key={post.id} className="post-enter card-hover">
                   <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Avatar 
-                        sx={{ 
-                          width: 32, 
-                          height: 32, 
-                          mr: 1,
-                          bgcolor: 'primary.main',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            transform: 'scale(1.1)'
-                          }
-                        }}
-                      >
-                        {selectedPageData.name[0]}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
-                          {selectedPageData.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(post.timestamp).toLocaleString()}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    
-                    <Typography variant="body2" sx={{ mb: 1 }}>
+                    {/* Post content */}
+                    <Typography variant="body1" sx={{ mb: 2 }}>
                       {post.content}
                     </Typography>
-
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: 2,
-                      color: 'text.secondary',
-                      fontSize: '0.875rem',
-                      mt: 1
-                    }}>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 0.5,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          color: 'primary.main'
-                        }
-                      }}>
-                        <ThumbUp sx={{ fontSize: 16 }} />
-                        <span>{post.likes}</span>
+                    
+                    {/* Post actions */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton size="small">
+                          <ThumbUp fontSize="small" />
+                        </IconButton>
+                        <Typography variant="body2" color="text.secondary">
+                          {post.likes} likes
+                        </Typography>
                       </Box>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 0.5,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          color: 'primary.main'
-                        }
-                      }}>
-                        <Reply sx={{ fontSize: 16 }} />
-                        <span>{post.comments.length}</span>
-                      </Box>
+                      <Button
+                        size="small"
+                        onClick={() => handleToggleComments(post.id)}
+                      >
+                        {expandedComments[post.id] ? 'Hide Comments' : 'Show Comments'}
+                      </Button>
                     </Box>
 
-                    {post.comments.length > 0 && (
-                      <Box sx={{ mt: 2, ml: 2 }}>
-                        <List dense sx={{ py: 0 }}>
-                          {post.comments.map((comment) => (
-                            <Card className="comment-enter card-hover" sx={{ mb: 1 }}>
-                              <ListItem 
-                                sx={{ 
-                                  py: 0.5,
-                                  transition: 'all 0.2s ease-in-out',
-                                  '&:hover': { 
-                                    bgcolor: 'action.hover',
-                                    borderRadius: 1
-                                  }
-                                }}
-                              >
-                                <ListItemText
-                                  primary={
-                                    <Typography variant="body2">
-                                      <strong>{comment.author}</strong> {comment.content}
-                                    </Typography>
-                                  }
-                                  secondary={
-                                    <Typography variant="caption" color="text.secondary">
-                                      {new Date(comment.timestamp).toLocaleString()}
-                                    </Typography>
-                                  }
-                                />
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => handleDeleteComment(post, comment.id)}
-                                  sx={{ 
-                                    ml: 1,
-                                    transition: 'all 0.2s ease-in-out',
-                                    '&:hover': {
-                                      transform: 'scale(1.1)',
-                                      color: 'error.main'
-                                    }
-                                  }}
-                                >
-                                  <Delete sx={{ fontSize: 16 }} />
-                                </IconButton>
-                              </ListItem>
-                            </Card>
-                          ))}
-                        </List>
-                      </Box>
-                    )}
+                    {/* Comments */}
+                    {expandedComments[post.id] && renderComments(post)}
                   </CardContent>
                 </Card>
               ))}
             </Box>
+          ) : (
+            <Typography variant="body1" color="text.secondary" align="center">
+              No posts available. Click "Load Posts" to fetch posts from Facebook.
+            </Typography>
           )}
-        </>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          Select a page to view posts
-        </Typography>
+        </Box>
       )}
 
       {/* New Post Dialog */}
@@ -849,16 +701,6 @@ const FacebookPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={() => setError(null)}
-      >
-        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

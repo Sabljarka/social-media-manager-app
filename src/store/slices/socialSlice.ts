@@ -42,7 +42,7 @@ export interface InstagramAccount {
   isActive: boolean;
 }
 
-interface SocialState {
+export interface SocialState {
   facebookPages: FacebookPage[];
   instagramAccounts: InstagramAccount[];
   selectedPage: string | null;
@@ -51,7 +51,7 @@ interface SocialState {
   error: string | null;
 }
 
-const initialState: SocialState = {
+export const initialState: SocialState = {
   facebookPages: [],
   instagramAccounts: [],
   selectedPage: null,
