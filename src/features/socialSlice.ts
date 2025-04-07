@@ -15,7 +15,14 @@ const initialState: SocialState = {
   selectedAccount: null,
   posts: [],
   comments: [],
-  notifications: [],
+  notifications: [
+    {
+      id: '1',
+      message: 'Test notification',
+      timestamp: new Date().toISOString(),
+      type: 'info'
+    }
+  ],
 };
 
 const socialSlice = createSlice({

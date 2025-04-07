@@ -1,73 +1,58 @@
-import io from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import { store } from '../store';
 import { addNotification, Notification as StoreNotification } from '../store/slices/notificationSlice';
+
+interface Notification {
+  id: string;
+  type: string;
+  message: string;
+  timestamp: string;
+}
 
 interface CommentData {
   postId: string;
   comment: {
     id: string;
-    content: string;
-    author: string;
+    message: string;
+    author: {
+      id: string;
+      name: string;
+      picture: string;
+    };
   };
 }
 
 class SocketService {
-  private socket: ReturnType<typeof io> | null = null;
-  private static instance: SocketService;
+  private socket: Socket | null = null;
 
-  private constructor() {}
-
-  static getInstance(): SocketService {
-    if (!SocketService.instance) {
-      SocketService.instance = new SocketService();
-    }
-    return SocketService.instance;
-  }
-
-  connect(url: string): void {
-    if (this.socket) {
-      this.disconnect();
-    }
-
+  connect(url: string) {
     this.socket = io(url);
-
-    this.setupListeners();
+    return this.socket;
   }
 
-  disconnect(): void {
+  disconnect() {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
     }
   }
 
-  private setupListeners() {
-    if (!this.socket) return;
+  onNotification(callback: (notification: StoreNotification) => void) {
+    if (this.socket) {
+      this.socket.on('notification', callback);
+    }
+  }
 
-    // Listen for new notifications
-    this.socket.on('notification', (notification: StoreNotification) => {
-      store.dispatch(addNotification(notification));
-    });
+  onNewComment(callback: (data: CommentData) => void) {
+    if (this.socket) {
+      this.socket.on('new_comment', callback);
+    }
+  }
 
-    // Listen for new comments
-    this.socket.on('new_comment', (data: CommentData) => {
-      const { comment } = data;
-      // Handle new comment (update UI, show notification, etc.)
-      console.log('New comment:', comment);
-    });
-
-    // Listen for connection status
-    this.socket.on('connect', () => {
-      console.log('Connected to socket server');
-    });
-
-    this.socket.on('disconnect', () => {
-      console.log('Disconnected from socket server');
-    });
-
-    this.socket.on('error', (error: Error) => {
-      console.error('Socket error:', error);
-    });
+  emit(event: string, data: any) {
+    if (this.socket) {
+      this.socket.emit(event, data);
+    }
   }
 
   // Method to join a specific room (e.g., for post updates)
@@ -84,24 +69,12 @@ class SocketService {
     }
   }
 
-  public onNotification(callback: (notification: StoreNotification) => void): void {
-    if (this.socket) {
-      this.socket.on('notification', callback);
-    }
-  }
-
-  public onNewComment(callback: (data: CommentData) => void): void {
-    if (this.socket) {
-      this.socket.on('new_comment', callback);
-    }
-  }
-
-  public onError(callback: (error: Error) => void): void {
+  onError(callback: (error: Error) => void) {
     if (this.socket) {
       this.socket.on('error', callback);
     }
   }
 }
 
-const socketService = SocketService.getInstance();
+const socketService = new SocketService();
 export default socketService; 

@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { Provider } from 'react-redux';
+import { store } from './store';
 import Layout from './components/layout/Layout';
 import DashboardPage from './pages/DashboardPage';
 import FacebookPage from './pages/FacebookPage';
@@ -20,20 +22,22 @@ const theme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/facebook" element={<FacebookPage />} />
-            <Route path="/instagram" element={<InstagramPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </ThemeProvider>
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/facebook" element={<FacebookPage />} />
+              <Route path="/instagram" element={<InstagramPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </ThemeProvider>
+    </Provider>
   );
 }
 

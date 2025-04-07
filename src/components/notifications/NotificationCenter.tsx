@@ -15,12 +15,12 @@ import {
 } from '@mui/material';
 import { Notifications as NotificationsIcon } from '@mui/icons-material';
 import { RootState } from '../../store';
-import { markAsRead, markAllAsRead } from '../../store/slices/notificationSlice';
+import { setNotifications } from '../../features/socialSlice';
 
 const NotificationCenter: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const dispatch = useDispatch();
-  const { notifications, unreadCount } = useSelector((state: RootState) => state.notifications);
+  const { notifications } = useSelector((state: RootState) => state.social);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -31,11 +31,20 @@ const NotificationCenter: React.FC = () => {
   };
 
   const handleMarkAsRead = (notificationId: string) => {
-    dispatch(markAsRead(notificationId));
+    const updatedNotifications = notifications.map(notification => 
+      notification.id === notificationId 
+        ? { ...notification, read: true }
+        : notification
+    );
+    dispatch(setNotifications(updatedNotifications));
   };
 
   const handleMarkAllAsRead = () => {
-    dispatch(markAllAsRead());
+    const updatedNotifications = notifications.map(notification => ({
+      ...notification,
+      read: true
+    }));
+    dispatch(setNotifications(updatedNotifications));
   };
 
   const getNotificationIcon = (type: string) => {
@@ -55,12 +64,8 @@ const NotificationCenter: React.FC = () => {
 
   return (
     <Box>
-      <IconButton
-        color="inherit"
-        onClick={handleClick}
-        aria-label="show notifications"
-      >
-        <Badge badgeContent={unreadCount} color="error">
+      <IconButton color="inherit" onClick={handleClick}>
+        <Badge badgeContent={notifications.filter(n => !n.read).length} color="error">
           <NotificationsIcon />
         </Badge>
       </IconButton>
@@ -69,29 +74,24 @@ const NotificationCenter: React.FC = () => {
         open={Boolean(anchorEl)}
         onClose={handleClose}
         PaperProps={{
-          style: {
-            maxHeight: 400,
-            width: 360,
-          },
+          sx: { width: 320, maxHeight: 400 }
         }}
       >
-        <Box p={2}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Notifications</Typography>
-            {notifications.length > 0 && (
-              <Typography
-                variant="body2"
-                color="primary"
-                style={{ cursor: 'pointer' }}
-                onClick={handleMarkAllAsRead}
-              >
-                Mark all as read
-              </Typography>
-            )}
-          </Box>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">Notifications</Typography>
+          {notifications.some(n => !n.read) && (
+            <Typography 
+              variant="body2" 
+              color="primary" 
+              sx={{ cursor: 'pointer' }}
+              onClick={handleMarkAllAsRead}
+            >
+              Mark all as read
+            </Typography>
+          )}
         </Box>
         <Divider />
-        <List>
+        <List sx={{ width: '100%', p: 0 }}>
           {notifications.length === 0 ? (
             <ListItem>
               <ListItemText primary="No notifications" />
@@ -100,31 +100,32 @@ const NotificationCenter: React.FC = () => {
             notifications.map((notification) => (
               <ListItem
                 key={notification.id}
-                style={{
-                  backgroundColor: notification.isRead ? 'inherit' : '#f5f5f5',
+                sx={{
+                  bgcolor: notification.read ? 'inherit' : 'action.hover',
+                  '&:hover': { bgcolor: 'action.selected' }
                 }}
               >
-                <Box display="flex" alignItems="center" width="100%">
-                  <Box mr={2} fontSize="1.5rem">
-                    {getNotificationIcon(notification.type)}
-                  </Box>
-                  <ListItemText
-                    primary={notification.content}
-                    secondary={new Date(notification.createdAt).toLocaleString()}
-                  />
-                  {!notification.isRead && (
-                    <ListItemSecondaryAction>
-                      <Typography
-                        variant="body2"
-                        color="primary"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleMarkAsRead(notification.id)}
-                      >
-                        Mark as read
-                      </Typography>
-                    </ListItemSecondaryAction>
-                  )}
-                </Box>
+                <ListItemText
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography component="span">{getNotificationIcon(notification.type)}</Typography>
+                      <Typography component="span">{notification.message}</Typography>
+                    </Box>
+                  }
+                  secondary={new Date(notification.timestamp).toLocaleString()}
+                />
+                {!notification.read && (
+                  <ListItemSecondaryAction>
+                    <Typography
+                      variant="body2"
+                      color="primary"
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => handleMarkAsRead(notification.id)}
+                    >
+                      Mark as read
+                    </Typography>
+                  </ListItemSecondaryAction>
+                )}
               </ListItem>
             ))
           )}

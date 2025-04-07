@@ -61,7 +61,7 @@ export class FacebookService {
       const response = await axios.get(`${FACEBOOK_API_BASE_URL}/me/accounts`, {
         params: {
           access_token: accessToken,
-          fields: 'id,name,access_token,category,tasks',
+          fields: 'id,name,access_token,category',
         },
       });
       return response.data.data;
@@ -76,12 +76,12 @@ export class FacebookService {
       const response = await axios.get(`${FACEBOOK_API_BASE_URL}/${pageId}/posts`, {
         params: {
           access_token: accessToken,
-          fields: 'id,message,created_time,likes.summary(true),comments.summary(true)',
+          fields: 'id,message,created_time,full_picture,likes.summary(true),comments.summary(true)',
         },
       });
       return response.data.data;
     } catch (error) {
-      console.error('Error fetching Facebook page posts:', error);
+      console.error('Error fetching page posts:', error);
       throw error;
     }
   }
@@ -108,45 +108,15 @@ export class FacebookService {
 
   async getPostComments(postId: string, accessToken: string) {
     try {
-      console.log('Fetching comments for post:', postId);
       const response = await axios.get(`${FACEBOOK_API_BASE_URL}/${postId}/comments`, {
         params: {
           access_token: accessToken,
-          fields: 'id,message,created_time,from{id,name,picture.type(large)},like_count',
-          include_hidden: true,
+          fields: 'id,message,created_time,from{id,name,picture{url}},like_count',
         },
       });
-      console.log('Raw comments response:', JSON.stringify(response.data, null, 2));
-      
-      // Fetch user information for each comment
-      const commentsWithUserInfo = await Promise.all(
-        response.data.data.map(async (comment: any) => {
-          console.log('Processing comment:', JSON.stringify(comment, null, 2));
-          
-          if (comment.from) {
-            try {
-              const userInfo = await this.getUserInfo(comment.from.id, accessToken);
-              console.log('User info for comment:', JSON.stringify(userInfo, null, 2));
-              return {
-                ...comment,
-                from: {
-                  ...comment.from,
-                  picture: userInfo?.picture || null
-                }
-              };
-            } catch (error) {
-              console.error('Error fetching user info:', error);
-              return comment;
-            }
-          }
-          return comment;
-        })
-      );
-      
-      console.log('Comments with user info:', JSON.stringify(commentsWithUserInfo, null, 2));
-      return commentsWithUserInfo;
+      return response.data.data;
     } catch (error) {
-      console.error('Error fetching Facebook post comments:', error);
+      console.error('Error fetching post comments:', error);
       throw error;
     }
   }
