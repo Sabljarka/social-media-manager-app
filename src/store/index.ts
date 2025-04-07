@@ -1,13 +1,19 @@
 import { configureStore } from '@reduxjs/toolkit';
 import socialReducer from './slices/socialSlice';
-import notificationReducer from './slices/notificationSlice';
+import authReducer from './slices/authSlice';
+import { AuthState } from '../types/user';
+import { SocialState } from './slices/socialSlice';
 
 export const store = configureStore({
   reducer: {
     social: socialReducer,
-    notifications: notificationReducer,
+    auth: authReducer,
   },
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export interface RootState {
+  social: SocialState;
+  auth: AuthState;
+}
+
 export type AppDispatch = typeof store.dispatch; 

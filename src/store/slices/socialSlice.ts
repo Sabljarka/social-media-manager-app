@@ -42,11 +42,31 @@ export interface InstagramAccount {
   isActive: boolean;
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+}
+
 export interface SocialState {
   facebookPages: FacebookPage[];
   instagramAccounts: InstagramAccount[];
   selectedPage: string | null;
   selectedAccount: string | null;
+  posts: { [key: string]: Post[] };
+  comments: { [key: string]: Comment[] };
+  notifications: Notification[];
+  isAuthenticated: boolean;
+  user: User | null;
   loading: boolean;
   error: string | null;
 }
@@ -56,6 +76,11 @@ export const initialState: SocialState = {
   instagramAccounts: [],
   selectedPage: null,
   selectedAccount: null,
+  posts: {},
+  comments: {},
+  notifications: [],
+  isAuthenticated: false,
+  user: null,
   loading: false,
   error: null,
 };

@@ -99,6 +99,7 @@ const FacebookPage: React.FC = () => {
       return;
     }
 
+    console.log('Page access token:', page.accessToken);
     setLoadingPosts(prev => ({ ...prev, [pageId]: true }));
     setError(null);
 
@@ -164,7 +165,9 @@ const FacebookPage: React.FC = () => {
   };
 
   const handlePageSelect = (pageId: string) => {
+    console.log('handlePageSelect called with pageId:', pageId);
     dispatch(setSelectedPage(pageId));
+    console.log('Selected page after dispatch:', pageId);
   };
 
   const handleAddPost = async () => {
@@ -560,11 +563,11 @@ const FacebookPage: React.FC = () => {
       </Box>
 
       {/* Selected page content */}
-      {selectedPage && (
+      {selectedPage && selectedPageData && (
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6">
-              {selectedPageData?.name}
+              {selectedPageData.name}
             </Typography>
             <Button
               variant="contained"

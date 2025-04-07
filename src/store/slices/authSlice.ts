@@ -1,24 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-interface AuthState {
-  isAuthenticated: boolean;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    picture?: string;
-  } | null;
-  facebookToken: string | null;
-  instagramToken: string | null;
-  loading: boolean;
-  error: string | null;
-}
+import { AuthState, User, LoginCredentials, RegisterCredentials } from '../../types/user';
 
 const initialState: AuthState = {
-  isAuthenticated: false,
   user: null,
-  facebookToken: null,
-  instagramToken: null,
+  token: localStorage.getItem('token'),
+  isAuthenticated: false,
   loading: false,
   error: null,
 };
@@ -27,49 +13,61 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
-    loginSuccess: (state, action: PayloadAction<{
-      user: AuthState['user'];
-      facebookToken?: string;
-      instagramToken?: string;
-    }>) => {
-      state.isAuthenticated = true;
-      state.user = action.payload.user;
-      if (action.payload.facebookToken) {
-        state.facebookToken = action.payload.facebookToken;
-      }
-      if (action.payload.instagramToken) {
-        state.instagramToken = action.payload.instagramToken;
-      }
+    loginStart: (state) => {
+      state.loading = true;
       state.error = null;
     },
+    loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
+      localStorage.setItem('token', action.payload.token);
+    },
+    loginFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    registerStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    registerSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
+      localStorage.setItem('token', action.payload.token);
+    },
+    registerFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
     logout: (state) => {
-      state.isAuthenticated = false;
       state.user = null;
-      state.facebookToken = null;
-      state.instagramToken = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      state.loading = false;
+      state.error = null;
+      localStorage.removeItem('token');
     },
-    setFacebookToken: (state, action: PayloadAction<string>) => {
-      state.facebookToken = action.payload;
-    },
-    setInstagramToken: (state, action: PayloadAction<string>) => {
-      state.instagramToken = action.payload;
+    clearError: (state) => {
+      state.error = null;
     },
   },
 });
 
 export const {
-  setLoading,
-  setError,
+  loginStart,
   loginSuccess,
+  loginFailure,
+  registerStart,
+  registerSuccess,
+  registerFailure,
   logout,
-  setFacebookToken,
-  setInstagramToken,
+  clearError,
 } = authSlice.actions;
 
 export default authSlice.reducer; 
