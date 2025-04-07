@@ -498,13 +498,34 @@ const FacebookPage: React.FC = () => {
   const selectedPageData = facebookPages.find(page => page.id === selectedPage);
 
   return (
-    <Box sx={{ p: 2, maxWidth: 1200, margin: '0 auto' }}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, mb: 3 }}>
+    <Box sx={{ 
+      p: 2, 
+      maxWidth: 1200, 
+      margin: '0 auto',
+      bgcolor: 'background.default',
+      minHeight: '100vh'
+    }}>
+      <Typography 
+        variant="h5" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 500, 
+          mb: 3,
+          color: 'text.primary',
+          fontSize: '1.5rem'
+        }}
+      >
         Facebook Pages
       </Typography>
 
       {/* Page Selection */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ 
+        mb: 3,
+        p: 2,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+      }}>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           {facebookPages.map((page) => (
             <Chip
@@ -515,6 +536,11 @@ const FacebookPage: React.FC = () => {
               size="small"
               sx={{ 
                 borderRadius: 1,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                },
                 '& .MuiChip-avatar': { width: 24, height: 24, fontSize: '0.75rem' }
               }}
               avatar={<Avatar sx={{ width: 24, height: 24 }}>{page.name[0]}</Avatar>}
@@ -526,7 +552,14 @@ const FacebookPage: React.FC = () => {
             onClick={() => setNewPageDialogOpen(true)}
             variant="outlined"
             size="small"
-            sx={{ borderRadius: 1 }}
+            sx={{ 
+              borderRadius: 1,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }
+            }}
           />
         </Box>
       </Box>
@@ -538,10 +571,14 @@ const FacebookPage: React.FC = () => {
             justifyContent: 'space-between', 
             alignItems: 'center',
             mb: 2,
-            p: 1,
+            p: 2,
             bgcolor: 'background.paper',
-            borderRadius: 1,
-            boxShadow: 1
+            borderRadius: 2,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+            }
           }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
               {selectedPageData.name}
@@ -554,7 +591,12 @@ const FacebookPage: React.FC = () => {
                 disabled={loadingPosts[selectedPageData.id]}
                 sx={{ 
                   textTransform: 'none',
-                  minWidth: 100
+                  minWidth: 100,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }
                 }}
               >
                 {loadingPosts[selectedPageData.id] ? (
@@ -570,7 +612,12 @@ const FacebookPage: React.FC = () => {
                 onClick={() => setNewPostDialogOpen(true)}
                 sx={{ 
                   textTransform: 'none',
-                  minWidth: 100
+                  minWidth: 100,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }
                 }}
               >
                 New Post
@@ -579,99 +626,133 @@ const FacebookPage: React.FC = () => {
           </Box>
 
           {loadingPosts[selectedPageData.id] ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              p: 3,
+              animation: 'pulse 1.5s infinite'
+            }}>
               <CircularProgress size={24} />
             </Box>
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {selectedPageData.posts.map((post) => (
-                <Paper 
-                  key={post.id} 
-                  sx={{ 
-                    p: 2, 
-                    borderRadius: 1,
-                    boxShadow: 1
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Avatar 
-                      sx={{ 
-                        width: 32, 
-                        height: 32, 
-                        mr: 1,
-                        bgcolor: 'primary.main'
-                      }}
-                    >
-                      {selectedPageData.name[0]}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
-                        {selectedPageData.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(post.timestamp).toLocaleString()}
-                      </Typography>
+                <Card className="post-enter card-hover" sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Avatar 
+                        sx={{ 
+                          width: 32, 
+                          height: 32, 
+                          mr: 1,
+                          bgcolor: 'primary.main',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            transform: 'scale(1.1)'
+                          }
+                        }}
+                      >
+                        {selectedPageData.name[0]}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                          {selectedPageData.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(post.timestamp).toLocaleString()}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                  
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    {post.content}
-                  </Typography>
+                    
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      {post.content}
+                    </Typography>
 
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 2,
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    mt: 1
-                  }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <ThumbUp sx={{ fontSize: 16 }} />
-                      <span>{post.likes}</span>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      color: 'text.secondary',
+                      fontSize: '0.875rem',
+                      mt: 1
+                    }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 0.5,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          color: 'primary.main'
+                        }
+                      }}>
+                        <ThumbUp sx={{ fontSize: 16 }} />
+                        <span>{post.likes}</span>
+                      </Box>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 0.5,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          color: 'primary.main'
+                        }
+                      }}>
+                        <Reply sx={{ fontSize: 16 }} />
+                        <span>{post.comments.length}</span>
+                      </Box>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Reply sx={{ fontSize: 16 }} />
-                      <span>{post.comments.length}</span>
-                    </Box>
-                  </Box>
 
-                  {post.comments.length > 0 && (
-                    <Box sx={{ mt: 2, ml: 2 }}>
-                      <List dense sx={{ py: 0 }}>
-                        {post.comments.map((comment) => (
-                          <ListItem 
-                            key={comment.id}
-                            sx={{ 
-                              py: 0.5,
-                              '&:hover': { bgcolor: 'action.hover' }
-                            }}
-                          >
-                            <ListItemText
-                              primary={
-                                <Typography variant="body2">
-                                  <strong>{comment.author}</strong> {comment.content}
-                                </Typography>
-                              }
-                              secondary={
-                                <Typography variant="caption" color="text.secondary">
-                                  {new Date(comment.timestamp).toLocaleString()}
-                                </Typography>
-                              }
-                            />
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleDeleteComment(post, comment.id)}
-                              sx={{ ml: 1 }}
-                            >
-                              <Delete sx={{ fontSize: 16 }} />
-                            </IconButton>
-                          </ListItem>
-                        ))}
-                      </List>
-                    </Box>
-                  )}
-                </Paper>
+                    {post.comments.length > 0 && (
+                      <Box sx={{ mt: 2, ml: 2 }}>
+                        <List dense sx={{ py: 0 }}>
+                          {post.comments.map((comment) => (
+                            <Card className="comment-enter card-hover" sx={{ mb: 1 }}>
+                              <ListItem 
+                                sx={{ 
+                                  py: 0.5,
+                                  transition: 'all 0.2s ease-in-out',
+                                  '&:hover': { 
+                                    bgcolor: 'action.hover',
+                                    borderRadius: 1
+                                  }
+                                }}
+                              >
+                                <ListItemText
+                                  primary={
+                                    <Typography variant="body2">
+                                      <strong>{comment.author}</strong> {comment.content}
+                                    </Typography>
+                                  }
+                                  secondary={
+                                    <Typography variant="caption" color="text.secondary">
+                                      {new Date(comment.timestamp).toLocaleString()}
+                                    </Typography>
+                                  }
+                                />
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => handleDeleteComment(post, comment.id)}
+                                  sx={{ 
+                                    ml: 1,
+                                    transition: 'all 0.2s ease-in-out',
+                                    '&:hover': {
+                                      transform: 'scale(1.1)',
+                                      color: 'error.main'
+                                    }
+                                  }}
+                                >
+                                  <Delete sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </ListItem>
+                            </Card>
+                          ))}
+                        </List>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
               ))}
             </Box>
           )}
