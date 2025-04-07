@@ -8,6 +8,9 @@ export interface FacebookPage {
   access_token: string;
   category: string;
   tasks: string[];
+  posts: Post[];
+  followers: number;
+  isActive: boolean;
 }
 
 export interface FacebookPost {

@@ -353,39 +353,66 @@ const FacebookPage: React.FC = () => {
   };
 
   const handleAddPage = async () => {
-    if (newPageName && newPageToken) {
-      setLoading(true);
-      try {
-        const isValid = await facebookService.validateToken(newPageToken);
-        if (!isValid) {
-          throw new Error('Invalid access token');
-        }
+    if (!newPageName || !newPageToken) {
+      setError('Please enter both page name and access token');
+      return;
+    }
 
-        const pages = await facebookService.getPages(newPageToken);
-        const page = pages.find((p: FacebookPage) => p.name === newPageName);
-        
-        if (!page) {
-          throw new Error('Page not found');
-        }
+    setLoading(true);
+    setError(null);
 
-        const newPage: FacebookPageType = {
-          id: page.id,
-          name: page.name,
-          accessToken: page.access_token,
-          posts: [],
-          followers: 0,
-          isActive: true,
-        };
-
-        dispatch(addFacebookPage(newPage));
-        setNewPageName('');
-        setNewPageToken('');
-        setNewPageDialogOpen(false);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : 'Failed to add Facebook page');
-      } finally {
-        setLoading(false);
+    try {
+      console.log('Starting to add new page:', newPageName);
+      
+      // Validate the token first
+      console.log('Validating token...');
+      const isValid = await facebookService.validateToken(newPageToken);
+      console.log('Token validation result:', isValid);
+      
+      if (!isValid) {
+        setError('Invalid access token');
+        return;
       }
+
+      // Check if page already exists
+      const existingPage = facebookPages.find(page => page.name === newPageName);
+      if (existingPage) {
+        setError('Page already exists');
+        return;
+      }
+
+      // Get page details
+      console.log('Fetching page details...');
+      const pages = await facebookService.getPages(newPageToken);
+      console.log('Available pages:', pages);
+      
+      const page = pages.find(p => p.name === newPageName);
+      if (!page) {
+        setError('Page not found or you do not have access to it');
+        return;
+      }
+
+      console.log('Adding page to store...');
+      const newPage: FacebookPageType = {
+        id: page.id,
+        name: page.name,
+        accessToken: page.access_token,
+        posts: [],
+        followers: 0,
+        isActive: true,
+      };
+
+      dispatch(addFacebookPage(newPage));
+      console.log('Page added successfully:', newPage);
+      
+      setNewPageDialogOpen(false);
+      setNewPageName('');
+      setNewPageToken('');
+    } catch (error) {
+      console.error('Error adding page:', error);
+      setError('Failed to add page. Please check your credentials and try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -471,16 +498,13 @@ const FacebookPage: React.FC = () => {
   const selectedPageData = facebookPages.find(page => page.id === selectedPage);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: 2, maxWidth: 1200, margin: '0 auto' }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, mb: 3 }}>
         Facebook Pages
       </Typography>
 
       {/* Page Selection */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Select Page
-        </Typography>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           {facebookPages.map((page) => (
             <Chip
@@ -488,65 +512,159 @@ const FacebookPage: React.FC = () => {
               label={page.name}
               onClick={() => handlePageSelect(page.id)}
               color={selectedPage === page.id ? 'primary' : 'default'}
-              avatar={<Avatar>{page.name[0]}</Avatar>}
+              size="small"
+              sx={{ 
+                borderRadius: 1,
+                '& .MuiChip-avatar': { width: 24, height: 24, fontSize: '0.75rem' }
+              }}
+              avatar={<Avatar sx={{ width: 24, height: 24 }}>{page.name[0]}</Avatar>}
             />
           ))}
           <Chip
-            icon={<Add />}
-            label="Add New Page"
+            icon={<Add sx={{ fontSize: 16 }} />}
+            label="Add Page"
             onClick={() => setNewPageDialogOpen(true)}
             variant="outlined"
+            size="small"
+            sx={{ borderRadius: 1 }}
           />
         </Box>
       </Box>
 
       {selectedPageData ? (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-            <Typography variant="h6">
-              Posts for {selectedPageData.name}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            mb: 2,
+            p: 1,
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+            boxShadow: 1
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+              {selectedPageData.name}
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setNewPostDialogOpen(true)}
-            >
-              New Post
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => handleLoadPosts(selectedPageData.id)}
+                disabled={loadingPosts[selectedPageData.id]}
+                sx={{ 
+                  textTransform: 'none',
+                  minWidth: 100
+                }}
+              >
+                {loadingPosts[selectedPageData.id] ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  'Load Posts'
+                )}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<Add sx={{ fontSize: 16 }} />}
+                onClick={() => setNewPostDialogOpen(true)}
+                sx={{ 
+                  textTransform: 'none',
+                  minWidth: 100
+                }}
+              >
+                New Post
+              </Button>
+            </Box>
           </Box>
 
-          <List>
-            {selectedPageData.posts.map((post) => (
-              <React.Fragment key={post.id}>
-                <Paper sx={{ mb: 2, p: 2 }}>
-                  <ListItem>
-                    <ListItemText
-                      primary={post.content}
-                      secondary={`Posted on ${new Date(post.timestamp).toLocaleString()}`}
-                    />
-                    <IconButton
-                      edge="end"
-                      onClick={() => {
-                        setSelectedPost(post);
-                        setNewCommentDialogOpen(true);
+          {loadingPosts[selectedPageData.id] ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {selectedPageData.posts.map((post) => (
+                <Paper 
+                  key={post.id} 
+                  sx={{ 
+                    p: 2, 
+                    borderRadius: 1,
+                    boxShadow: 1
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Avatar 
+                      sx={{ 
+                        width: 32, 
+                        height: 32, 
+                        mr: 1,
+                        bgcolor: 'primary.main'
                       }}
                     >
-                      <Reply />
-                    </IconButton>
-                  </ListItem>
-
-                  {/* Comments Section */}
-                  {post.comments.length > 0 && (
-                    <Box sx={{ mt: 2, ml: 4 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Comments
+                      {selectedPageData.name[0]}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                        {selectedPageData.name}
                       </Typography>
-                      <List>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(post.timestamp).toLocaleString()}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    {post.content}
+                  </Typography>
+
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    color: 'text.secondary',
+                    fontSize: '0.875rem',
+                    mt: 1
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <ThumbUp sx={{ fontSize: 16 }} />
+                      <span>{post.likes}</span>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Reply sx={{ fontSize: 16 }} />
+                      <span>{post.comments.length}</span>
+                    </Box>
+                  </Box>
+
+                  {post.comments.length > 0 && (
+                    <Box sx={{ mt: 2, ml: 2 }}>
+                      <List dense sx={{ py: 0 }}>
                         {post.comments.map((comment) => (
-                          <ListItem key={comment.id}>
-                            <ListItemText primary={comment.content} />
-                            <IconButton edge="end" onClick={() => handleDeleteComment(post, comment.id)}>
-                              <Delete />
+                          <ListItem 
+                            key={comment.id}
+                            sx={{ 
+                              py: 0.5,
+                              '&:hover': { bgcolor: 'action.hover' }
+                            }}
+                          >
+                            <ListItemText
+                              primary={
+                                <Typography variant="body2">
+                                  <strong>{comment.author}</strong> {comment.content}
+                                </Typography>
+                              }
+                              secondary={
+                                <Typography variant="caption" color="text.secondary">
+                                  {new Date(comment.timestamp).toLocaleString()}
+                                </Typography>
+                              }
+                            />
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleDeleteComment(post, comment.id)}
+                              sx={{ ml: 1 }}
+                            >
+                              <Delete sx={{ fontSize: 16 }} />
                             </IconButton>
                           </ListItem>
                         ))}
@@ -554,13 +672,14 @@ const FacebookPage: React.FC = () => {
                     </Box>
                   )}
                 </Paper>
-                <Divider />
-              </React.Fragment>
-            ))}
-          </List>
+              ))}
+            </Box>
+          )}
         </>
       ) : (
-        <Typography>Please select a page to view posts</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Select a page to view posts
+        </Typography>
       )}
 
       {/* New Post Dialog */}
@@ -646,131 +765,6 @@ const FacebookPage: React.FC = () => {
           </Button>
           <Button onClick={handleAddPage} color="primary" disabled={loading}>
             Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Grid container spacing={3}>
-        {facebookPages.map((page) => (
-          <Grid 
-            key={page.id}
-            component="div"
-            sx={{
-              width: { xs: '100%', md: '50%' },
-              p: 1
-            }}
-          >
-            <Card>
-              <CardContent>
-                <Typography variant="h6">{page.name}</Typography>
-                <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleLoadPosts(page.id)}
-                    disabled={loadingPosts[page.id]}
-                  >
-                    {loadingPosts[page.id] ? (
-                      <CircularProgress size={24} color="inherit" />
-                    ) : (
-                      'Load Posts'
-                    )}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => handleCreatePost(page.id)}
-                    disabled={loading}
-                  >
-                    Create Post
-                  </Button>
-                </Box>
-
-                <Box sx={{ mt: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Recent Posts
-                  </Typography>
-                  {loadingPosts[page.id] ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                      <CircularProgress />
-                    </Box>
-                  ) : (
-                    <List>
-                      {page.posts.map((post) => (
-                        <Paper key={post.id} sx={{ p: 2, mb: 2 }}>
-                          <Typography variant="body1">{post.content}</Typography>
-                          <Typography variant="caption" color="textSecondary">
-                            {new Date(post.timestamp).toLocaleString()}
-                          </Typography>
-                          <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-                            <Chip
-                              size="small"
-                              label={`${post.likes} likes`}
-                              color="primary"
-                              variant="outlined"
-                            />
-                            <Chip
-                              size="small"
-                              label={`${post.shares} shares`}
-                              color="secondary"
-                              variant="outlined"
-                            />
-                            <Button
-                              size="small"
-                              onClick={() => handleToggleComments(post.id)}
-                              startIcon={<Reply />}
-                            >
-                              {post.comments.length} Comments
-                            </Button>
-                          </Box>
-                          {renderComments(post)}
-                        </Paper>
-                      ))}
-                    </List>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Dialog
-        open={!!selectedPost}
-        onClose={() => setSelectedPost(null)}
-      >
-        <DialogTitle>Comments</DialogTitle>
-        <DialogContent>
-          <List>
-            {(selectedPost && comments[`${selectedPage}_${selectedPost.id}`] || []).map((comment) => (
-              <ListItem key={comment.id}>
-                <ListItemText
-                  primary={comment.content}
-                  secondary={`${comment.author} - ${new Date(comment.timestamp).toLocaleString()}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="New Comment"
-            fullWidth
-            value={newCommentContent[selectedPost?.id || ''] || ''}
-            onChange={(e) => setNewCommentContent(prev => ({ ...prev, [selectedPost?.id || '']: e.target.value }))}
-            disabled={loading}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSelectedPost(null)} disabled={loading}>
-            Close
-          </Button>
-          <Button
-            onClick={() => selectedPost && handleAddCommentToPost(selectedPage!, selectedPost.id)}
-            color="primary"
-            disabled={loading}
-          >
-            Add Comment
           </Button>
         </DialogActions>
       </Dialog>
