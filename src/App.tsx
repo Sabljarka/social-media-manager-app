@@ -7,6 +7,8 @@ import DashboardPage from './pages/DashboardPage';
 import FacebookPage from './pages/FacebookPage';
 import InstagramPage from './pages/InstagramPage';
 import SettingsPage from './pages/SettingsPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 const theme = createTheme({
   palette: {
@@ -33,6 +35,8 @@ function App() {
               <Route path="/facebook" element={<FacebookPage />} />
               <Route path="/instagram" element={<InstagramPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
             </Routes>
           </Layout>
         </Router>
