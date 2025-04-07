@@ -24,6 +24,7 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/users', require('./src/routes/users'));
 app.use('/api/social', require('./src/routes/social'));
+app.use('/api/facebook', require('./src/routes/facebookAuth'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
