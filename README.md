@@ -14,7 +14,7 @@ Aplikacija za upravljanje socijalnim mrežama (Facebook, Instagram, TikTok, YouT
 ## Tehnologije
 
 - Backend: Node.js, Express.js, MongoDB
-- Frontend: React.js, Redux, Material-UI
+- Frontend: React.js, Redux, Material-UI, Vite
 - Autentifikacija: JWT
 - API integracije: Facebook Graph API, Instagram Graph API, TikTok API, YouTube API
 
@@ -22,7 +22,7 @@ Aplikacija za upravljanje socijalnim mrežama (Facebook, Instagram, TikTok, YouT
 
 1. Klonirajte repozitorijum:
 ```bash
-git clone https://github.com/yourusername/social-media-manager.git
+git clone https://github.com/Sabljarka/social-media-manager-app.git
 cd social-media-manager
 ```
 
@@ -59,6 +59,13 @@ cd frontend
 npm start
 ```
 
+## Development Setup
+
+This project uses Vite for frontend development. Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
 ## API Endpoints
 
 ### Autentifikacija
@@ -81,4 +88,4 @@ npm start
 
 ## Licenca
 
-MIT 
+MIT
