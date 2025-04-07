@@ -7,7 +7,7 @@ import {
   Drawer,
   IconButton,
   List,
-  ListItemButton,
+  ListItem,
   ListItemIcon,
   ListItemText,
   Toolbar,
@@ -51,26 +51,40 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   const drawer = (
-    <div>
-      <Toolbar />
+    <Box sx={{ overflow: 'auto' }}>
+      <Toolbar>
+        <Typography variant="h6" noWrap component="div">
+          Social Manager
+        </Typography>
+      </Toolbar>
       <List>
         {menuItems.map((item) => (
-          <ListItemButton
-            key={item.text}
-            onClick={() => {
-              navigate(item.path);
-              if (isMobile) {
-                setMobileOpen(false);
-              }
+          <ListItem 
+            key={item.path} 
+            button 
+            component={Link} 
+            to={item.path}
+            className={`list-item-enter hover-lift ${location.pathname === item.path ? 'active' : ''}`}
+            sx={{ 
+              borderRadius: 1,
+              mb: 1,
+              '&.active': {
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': {
+                  bgcolor: 'primary.dark',
+                },
+              },
             }}
-            selected={location.pathname === item.path}
           >
-            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemIcon sx={{ color: 'inherit' }}>
+              {item.icon}
+            </ListItemIcon>
             <ListItemText primary={item.text} />
-          </ListItemButton>
+          </ListItem>
         ))}
       </List>
-    </div>
+    </Box>
   );
 
   return (
@@ -104,32 +118,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
         <Drawer
-          variant="temporary"
-          open={mobileOpen}
+          variant={isMobile ? 'temporary' : 'permanent'}
+          open={isMobile ? mobileOpen : true}
           onClose={handleDrawerToggle}
           ModalProps={{
             keepMounted: true,
           }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
             },
           }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-            },
-          }}
-          open
         >
           {drawer}
         </Drawer>
@@ -143,8 +143,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           ml: { sm: `${drawerWidth}px` },
           mt: '64px',
         }}
+        className="page-enter"
       >
-        {children}
+        <Box className="section-enter">
+          {children}
+        </Box>
       </Box>
       <Box
         component="footer"
