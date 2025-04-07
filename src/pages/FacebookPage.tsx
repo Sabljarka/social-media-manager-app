@@ -52,7 +52,7 @@ const FacebookPage: React.FC = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const facebookPages = useSelector((state: RootState) => state.social.facebookPages);
-  const selectedPage = useSelector((state: RootState) => (state.social as SocialState).selectedPage);
+  const selectedPage = useSelector((state: RootState) => state.social.selectedPage);
   const selectedPageData = selectedPage ? facebookPages.find(p => p.id === selectedPage) : null;
   const [newPostDialogOpen, setNewPostDialogOpen] = useState(false);
   const [newCommentDialogOpen, setNewCommentDialogOpen] = useState(false);
@@ -90,8 +90,14 @@ const FacebookPage: React.FC = () => {
   }, [selectedPage, facebookPages]);
 
   const handleLoadPosts = async (pageId: string) => {
+    console.log('handleLoadPosts called with pageId:', pageId);
     const page = facebookPages.find(p => p.id === pageId);
-    if (!page) return;
+    console.log('Found page:', page);
+    
+    if (!page) {
+      console.log('Page not found');
+      return;
+    }
 
     setLoadingPosts(prev => ({ ...prev, [pageId]: true }));
     setError(null);
@@ -102,6 +108,7 @@ const FacebookPage: React.FC = () => {
       console.log('Token validation result:', isValid);
       
       if (!isValid) {
+        console.log('Token is invalid');
         setError(`Invalid access token for page ${page.name}`);
         return;
       }
@@ -111,7 +118,9 @@ const FacebookPage: React.FC = () => {
       console.log('Received posts:', posts);
       
       if (posts && posts.length > 0) {
+        console.log('Processing posts...');
         const formattedPosts: Post[] = await Promise.all(posts.map(async (post: FacebookPost) => {
+          console.log('Processing post:', post.id);
           const comments = await facebookService.getPostComments(post.id, page.accessToken);
           console.log(`Comments for post ${post.id}:`, comments);
 
