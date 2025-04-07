@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -17,6 +17,7 @@ import {
   useTheme,
   useMediaQuery,
   alpha,
+  Button,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -25,17 +26,18 @@ import {
   Twitter as TwitterIcon,
   Instagram as InstagramIcon,
   Settings as SettingsIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import NotificationCenter from '../notifications/NotificationCenter';
 
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: 'Dashboard', path: '/', icon: <DashboardIcon /> },
+  { text: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
   { text: 'Facebook', path: '/facebook', icon: <FacebookIcon /> },
   { text: 'Twitter', path: '/twitter', icon: <TwitterIcon /> },
   { text: 'Instagram', path: '/instagram', icon: <InstagramIcon /> },
-  { text: 'Settings', path: '/settings', icon: <SettingsIcon /> },
+  { text: 'Podešavanja', path: '/settings', icon: <SettingsIcon /> },
 ];
 
 interface LayoutProps {
@@ -47,9 +49,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    navigate('/login');
   };
 
   const drawer = (
@@ -62,12 +70,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           sx={{ 
             fontWeight: 600,
             letterSpacing: '-0.025em',
+            fontSize: '1.1rem',
           }}
         >
           Social Manager
         </Typography>
       </Toolbar>
-      <List>
+      <List sx={{ px: 1 }}>
         {menuItems.map((item) => (
           <ListItem 
             key={item.path} 
@@ -76,10 +85,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             to={item.path}
             className={`list-item-enter hover-lift ${location.pathname === item.path ? 'active' : ''}`}
             sx={{ 
-              borderRadius: 'var(--radius-md)',
-              mb: 1,
-              py: 1,
-              px: 2,
+              borderRadius: '8px',
+              mb: 0.5,
+              py: 0.75,
+              px: 1.5,
               '&.active': {
                 bgcolor: 'primary.main',
                 color: 'primary.contrastText',
@@ -94,7 +103,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <ListItemIcon sx={{ 
               color: 'inherit',
-              minWidth: 40,
+              minWidth: 36,
+              '& svg': {
+                fontSize: '1.25rem',
+              },
             }}>
               {item.icon}
             </ListItemIcon>
@@ -145,12 +157,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               fontWeight: 600,
               letterSpacing: '-0.025em',
               flexGrow: 1,
+              fontSize: '1.1rem',
             }}
           >
             Social Media Manager
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <NotificationCenter />
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+              size="small"
+              sx={{
+                fontSize: '0.875rem',
+                py: 0.5,
+              }}
+            >
+              Odjavi se
+            </Button>
           </Box>
         </Toolbar>
       </AppBar>

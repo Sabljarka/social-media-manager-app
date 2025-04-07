@@ -13,15 +13,52 @@ import {
 } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { useThemeContext } from '../context/ThemeContext';
 
 const Settings: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
+  const { isDarkMode, toggleTheme } = useThemeContext();
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ 
+      p: 3,
+      maxWidth: 800,
+      margin: '0 auto',
+    }}>
       <Typography variant="h4" gutterBottom>
-        Settings
+        Podešavanja
       </Typography>
+
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Podešavanja aplikacije
+        </Typography>
+        <List>
+          <ListItem>
+            <ListItemText
+              primary="Tamni režim"
+              secondary="Uključi/isključi tamni režim za aplikaciju"
+            />
+            <ListItemSecondaryAction>
+              <Switch 
+                edge="end" 
+                checked={isDarkMode}
+                onChange={toggleTheme}
+              />
+            </ListItemSecondaryAction>
+          </ListItem>
+          <Divider />
+          <ListItem>
+            <ListItemText
+              primary="Email obaveštenja"
+              secondary="Primaj email obaveštenja za važne ažuriranja"
+            />
+            <ListItemSecondaryAction>
+              <Switch edge="end" defaultChecked />
+            </ListItemSecondaryAction>
+          </ListItem>
+        </List>
+      </Paper>
 
       <Paper sx={{ p: 2, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
@@ -49,43 +86,16 @@ const Settings: React.FC = () => {
         </List>
       </Paper>
 
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Application Settings
-        </Typography>
-        <List>
-          <ListItem>
-            <ListItemText
-              primary="Dark Mode"
-              secondary="Toggle dark mode for the application"
-            />
-            <ListItemSecondaryAction>
-              <Switch edge="end" />
-            </ListItemSecondaryAction>
-          </ListItem>
-          <Divider />
-          <ListItem>
-            <ListItemText
-              primary="Email Notifications"
-              secondary="Receive email notifications for important updates"
-            />
-            <ListItemSecondaryAction>
-              <Switch edge="end" defaultChecked />
-            </ListItemSecondaryAction>
-          </ListItem>
-        </List>
-      </Paper>
-
       <Paper sx={{ p: 2 }}>
         <Typography variant="h6" gutterBottom>
-          Account Actions
+          Akcije na nalogu
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button variant="outlined" color="primary">
-            Change Password
+            Promeni lozinku
           </Button>
           <Button variant="outlined" color="error">
-            Delete Account
+            Obriši nalog
           </Button>
         </Box>
       </Paper>

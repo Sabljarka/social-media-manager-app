@@ -1,84 +1,40 @@
 import React from 'react';
-import { Container, Typography, Box, Paper } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 const PrivacyPolicy: React.FC = () => {
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Privacy Policy
-        </Typography>
-        
-        <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-          Last Updated: {new Date().toLocaleDateString()}
-        </Typography>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+      <h1 style={{ textAlign: 'center' }}>Privacy Policy</h1>
 
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            1. Information We Collect
-          </Typography>
-          <Typography paragraph>
-            We collect information that you provide directly to us, including:
-          </Typography>
-          <ul>
-            <li>Your name and email address</li>
-            <li>Social media account information</li>
-            <li>Content you post or share through our service</li>
-            <li>Communication preferences</li>
-          </ul>
-        </Box>
+      <h2>Facebook User Data Deletion</h2>
+      <p>If you wish to delete your data from Facebook through our app, please follow these steps:</p>
+      <ol>
+        <li>Log in to our app using your credentials</li>
+        <li>Navigate to the Facebook section</li>
+        <li>Click on the "Delete My Data" button</li>
+        <li>Confirm your decision in the popup window</li>
+      </ol>
 
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            2. How We Use Your Information
-          </Typography>
-          <Typography paragraph>
-            We use the information we collect to:
-          </Typography>
-          <ul>
-            <li>Provide and maintain our services</li>
-            <li>Send you updates and notifications</li>
-            <li>Improve our services and develop new features</li>
-            <li>Protect against fraud and unauthorized access</li>
-          </ul>
-        </Box>
+      <h2>Data Collection and Usage</h2>
+      <p>We collect and process your data in accordance with applicable data protection laws. This includes:</p>
+      <ul>
+        <li>Basic account information (email, name)</li>
+        <li>Social media account access tokens</li>
+        <li>Usage statistics and analytics</li>
+      </ul>
 
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            3. Data Security
-          </Typography>
-          <Typography paragraph>
-            We implement appropriate security measures to protect your personal information. However, no method of transmission over the internet is 100% secure.
-          </Typography>
-        </Box>
+      <h2>Data Protection</h2>
+      <p>We implement appropriate security measures to protect your data, including:</p>
+      <ul>
+        <li>Encryption of sensitive data</li>
+        <li>Regular security audits</li>
+        <li>Access controls and authentication</li>
+      </ul>
 
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            4. Your Rights
-          </Typography>
-          <Typography paragraph>
-            You have the right to:
-          </Typography>
-          <ul>
-            <li>Access your personal information</li>
-            <li>Correct inaccurate information</li>
-            <li>Request deletion of your information</li>
-            <li>Opt-out of marketing communications</li>
-          </ul>
-        </Box>
-
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            5. Contact Us
-          </Typography>
-          <Typography paragraph>
-            If you have any questions about this Privacy Policy, please contact us at:
-            <br />
-            Email: support@socialmediamanager.com
-          </Typography>
-        </Box>
-      </Paper>
-    </Container>
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <Link to="/">Back to Home</Link>
+      </div>
+    </div>
   );
 };
 

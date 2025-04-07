@@ -1,73 +1,48 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AuthState, User, LoginCredentials, RegisterCredentials } from '../../types/user';
 
-const initialState: AuthState = {
-  user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: false,
-  loading: false,
-  error: null,
+interface AuthState {
+  isAuthenticated: boolean;
+  user: {
+    email: string;
+    token: string;
+  } | null;
+}
+
+// Učitavanje stanja iz localStorage-a
+const loadState = (): AuthState => {
+  const savedState = localStorage.getItem('authState');
+  if (savedState) {
+    return JSON.parse(savedState);
+  }
+  return {
+    isAuthenticated: false,
+    user: null,
+  };
 };
+
+const initialState: AuthState = loadState();
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    loginStart: (state) => {
-      state.loading = true;
-      state.error = null;
-    },
-    loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
+    login: (state, action: PayloadAction<{ email: string; token: string }>) => {
       state.isAuthenticated = true;
-      state.loading = false;
-      state.error = null;
-      localStorage.setItem('token', action.payload.token);
-    },
-    loginFailure: (state, action: PayloadAction<string>) => {
-      state.loading = false;
-      state.error = action.payload;
-    },
-    registerStart: (state) => {
-      state.loading = true;
-      state.error = null;
-    },
-    registerSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.isAuthenticated = true;
-      state.loading = false;
-      state.error = null;
-      localStorage.setItem('token', action.payload.token);
-    },
-    registerFailure: (state, action: PayloadAction<string>) => {
-      state.loading = false;
-      state.error = action.payload;
+      state.user = action.payload;
+      // Čuvanje stanja u localStorage
+      localStorage.setItem('authState', JSON.stringify({
+        isAuthenticated: true,
+        user: action.payload,
+      }));
     },
     logout: (state) => {
-      state.user = null;
-      state.token = null;
       state.isAuthenticated = false;
-      state.loading = false;
-      state.error = null;
-      localStorage.removeItem('token');
-    },
-    clearError: (state) => {
-      state.error = null;
+      state.user = null;
+      // Brisanje stanja iz localStorage-a
+      localStorage.removeItem('authState');
     },
   },
 });
 
-export const {
-  loginStart,
-  loginSuccess,
-  loginFailure,
-  registerStart,
-  registerSuccess,
-  registerFailure,
-  logout,
-  clearError,
-} = authSlice.actions;
-
+export const { login, logout } = authSlice.actions;
 export default authSlice.reducer; 
