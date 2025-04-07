@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String           @id @default(cuid())
+  email             String           @unique
+  name              String?
+  password          String
+  facebookPages     FacebookPage[]
+  instagramAccounts InstagramAccount[]
+  tokenRefreshes    TokenRefresh[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model FacebookPage {
+  id          String    @id @default(cuid())
+  name        String
+  accessToken String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  posts       Post[]
+  followers   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model InstagramAccount {
+  id          String    @id @default(cuid())
+  username    String
+  accessToken String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  posts       Post[]
+  followers   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  content     String
+  mediaUrl    String?
+  pageId      String
+  facebookPage FacebookPage? @relation(fields: [pageId], references: [id])
+  instagramAccount InstagramAccount? @relation(fields: [pageId], references: [id])
+  timestamp   DateTime  @default(now())
+  likes       Int       @default(0)
+  comments    Comment[]
+  isPublished Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  author    String
+  content   String
+  timestamp DateTime @default(now())
+  isHidden  Boolean  @default(false)
+  replies   Comment[]
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TokenRefresh {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  platform  String
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // 'comment' | 'like' | 'message' | 'mention'
+  content   String
+  data      Json     // Store additional data as JSON
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+} 
