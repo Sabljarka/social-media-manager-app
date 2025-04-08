@@ -16,7 +16,9 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://social-media-manager-backend.vercel.app"
+    "VITE_API_URL": "https://social-media-manager-backend.vercel.app",
+    "VITE_FACEBOOK_APP_ID": "@facebook-app-id",
+    "VITE_FACEBOOK_APP_SECRET": "@facebook-app-secret"
   },
   "headers": [
     {
