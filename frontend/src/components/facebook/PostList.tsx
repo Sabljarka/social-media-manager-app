@@ -9,6 +9,8 @@ import {
   Button,
   VStack,
   useToast,
+  Spinner,
+  Center,
 } from '@chakra-ui/react';
 import axios from 'axios';
 
@@ -48,7 +50,7 @@ const PostList: React.FC<PostListProps> = ({ pageId, onPostSelect }) => {
     try {
       setLoading(true);
       const response = await axios.get<FacebookResponse>(`/api/facebook/pages/${pageId}/posts`);
-      setPosts(response.data.data);
+      setPosts(response.data.data || []);
     } catch (error) {
       toast({
         title: 'Error',
@@ -57,6 +59,7 @@ const PostList: React.FC<PostListProps> = ({ pageId, onPostSelect }) => {
         duration: 5000,
         isClosable: true,
       });
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -72,46 +75,62 @@ const PostList: React.FC<PostListProps> = ({ pageId, onPostSelect }) => {
     return new Date(dateString).toLocaleString();
   };
 
+  if (loading) {
+    return (
+      <Center p={8}>
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
   return (
     <Box p={4}>
       <Heading size="lg" mb={4}>Posts</Heading>
       <VStack spacing={4} align="stretch">
-        {posts.map((post) => (
-          <Card key={post.id}>
-            <CardHeader>
-              <Heading size="md">Post</Heading>
-              <Text fontSize="sm" color="gray.500">
-                {formatDate(post.created_time)}
-              </Text>
-            </CardHeader>
+        {posts.length === 0 ? (
+          <Card>
             <CardBody>
-              <Text mb={4}>{post.message}</Text>
-              {post.comments && (
-                <Box>
-                  <Heading size="sm" mb={2}>Comments</Heading>
-                  <VStack align="stretch" spacing={2}>
-                    {post.comments.data.map((comment) => (
-                      <Box key={comment.id} p={2} bg="gray.50" borderRadius="md">
-                        <Text fontWeight="bold">{comment.from.name}</Text>
-                        <Text>{comment.message}</Text>
-                        <Text fontSize="sm" color="gray.500">
-                          {formatDate(comment.created_time)}
-                        </Text>
-                      </Box>
-                    ))}
-                  </VStack>
-                </Box>
-              )}
-              <Button
-                mt={4}
-                colorScheme="blue"
-                onClick={() => onPostSelect(post.id)}
-              >
-                Manage Comments
-              </Button>
+              <Text>No posts found.</Text>
             </CardBody>
           </Card>
-        ))}
+        ) : (
+          posts.map((post) => (
+            <Card key={post.id}>
+              <CardHeader>
+                <Heading size="md">Post</Heading>
+                <Text fontSize="sm" color="gray.500">
+                  {formatDate(post.created_time)}
+                </Text>
+              </CardHeader>
+              <CardBody>
+                <Text mb={4}>{post.message}</Text>
+                {post.comments && post.comments.data && post.comments.data.length > 0 && (
+                  <Box>
+                    <Heading size="sm" mb={2}>Comments</Heading>
+                    <VStack align="stretch" spacing={2}>
+                      {post.comments.data.map((comment) => (
+                        <Box key={comment.id} p={2} bg="gray.50" borderRadius="md">
+                          <Text fontWeight="bold">{comment.from.name}</Text>
+                          <Text>{comment.message}</Text>
+                          <Text fontSize="sm" color="gray.500">
+                            {formatDate(comment.created_time)}
+                          </Text>
+                        </Box>
+                      ))}
+                    </VStack>
+                  </Box>
+                )}
+                <Button
+                  mt={4}
+                  colorScheme="blue"
+                  onClick={() => onPostSelect(post.id)}
+                >
+                  Manage Comments
+                </Button>
+              </CardBody>
+            </Card>
+          ))
+        )}
       </VStack>
     </Box>
   );
