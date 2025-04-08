@@ -6,6 +6,7 @@ import { PrivacyPolicy } from './components/pages/PrivacyPolicy'
 import { Disclaimer } from './components/pages/Disclaimer'
 import { UserDataDeletion } from './components/pages/UserDataDeletion'
 
+// Test automatskog deploymenta
 function App() {
   return (
     <ChakraProvider>
