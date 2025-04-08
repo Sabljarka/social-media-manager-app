@@ -1,57 +1,43 @@
-import mongoose from 'mongoose';
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
-export interface IUser extends mongoose.Document {
+const prisma = new PrismaClient();
+
+export interface IUser {
+  id: string;
   email: string;
   password: string;
   username: string;
   role: 'admin' | 'moderator' | 'user';
-  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
-  role: {
-    type: String,
-    enum: ['admin', 'moderator', 'user'],
-    default: 'user'
+export class User {
+  static async findOne(query: { email?: string; username?: string }): Promise<IUser | null> {
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: query.email },
+          { username: query.username }
+        ]
+      }
+    });
+    return user;
   }
-}, {
-  timestamps: true
-});
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error: any) {
-    next(error);
+  static async create(data: { email: string; username: string; password: string; role?: string }): Promise<IUser> {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        username: data.username,
+        password: hashedPassword,
+        role: data.role || 'user'
+      }
+    });
+    return user;
   }
-});
 
-// Method to compare passwords
-userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, this.password);
-};
-
-export const User = mongoose.model<IUser>('User', userSchema); 
+  static async comparePassword(user: IUser, candidatePassword: string): Promise<boolean> {
+    return bcrypt.compare(candidatePassword, user.password);
+  }
+} 

@@ -5,6 +5,24 @@ import { socialService } from '../services/socialService';
 
 const router = express.Router();
 
+interface FacebookTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+interface FacebookUserResponse {
+  id: string;
+  name: string;
+  email: string;
+}
+
+// Facebook OAuth initialization
+router.get('/auth', (req, res) => {
+  const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${process.env.FACEBOOK_CALLBACK_URL}&scope=pages_show_list,pages_read_engagement,pages_manage_posts,pages_manage_engagement`;
+  res.json({ url: authUrl });
+});
+
 // Facebook OAuth callback
 router.get('/callback', async (req, res) => {
   try {
@@ -15,7 +33,7 @@ router.get('/callback', async (req, res) => {
     }
 
     // Exchange code for access token
-    const tokenResponse = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
+    const tokenResponse = await axios.get<FacebookTokenResponse>('https://graph.facebook.com/v18.0/oauth/access_token', {
       params: {
         client_id: process.env.FACEBOOK_APP_ID,
         client_secret: process.env.FACEBOOK_APP_SECRET,
@@ -27,7 +45,7 @@ router.get('/callback', async (req, res) => {
     const { access_token } = tokenResponse.data;
 
     // Get user info from Facebook
-    const userResponse = await axios.get('https://graph.facebook.com/v18.0/me', {
+    const userResponse = await axios.get<FacebookUserResponse>('https://graph.facebook.com/v18.0/me', {
       params: {
         access_token,
         fields: 'id,name,email'

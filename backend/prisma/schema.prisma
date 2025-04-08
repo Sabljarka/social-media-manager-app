@@ -13,11 +13,14 @@ datasource db {
 model User {
   id                String           @id @default(cuid())
   email             String           @unique
+  username          String           @unique
+  role              String           @default("user")
   name              String?
   password          String
   facebookPages     FacebookPage[]
   instagramAccounts InstagramAccount[]
   tokenRefreshes    TokenRefresh[]
+  notifications     Notification[]
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 }
@@ -49,18 +52,19 @@ model InstagramAccount {
 }
 
 model Post {
-  id          String    @id @default(cuid())
-  content     String
-  mediaUrl    String?
-  pageId      String
-  facebookPage FacebookPage? @relation(fields: [pageId], references: [id])
-  instagramAccount InstagramAccount? @relation(fields: [pageId], references: [id])
-  timestamp   DateTime  @default(now())
-  likes       Int       @default(0)
-  comments    Comment[]
-  isPublished Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  content           String
+  mediaUrl          String?
+  facebookPageId    String?
+  facebookPage      FacebookPage? @relation(fields: [facebookPageId], references: [id])
+  instagramAccountId String?
+  instagramAccount  InstagramAccount? @relation(fields: [instagramAccountId], references: [id])
+  timestamp         DateTime  @default(now())
+  likes             Int       @default(0)
+  comments          Comment[]
+  isPublished       Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Comment {
@@ -71,7 +75,7 @@ model Comment {
   content   String
   timestamp DateTime @default(now())
   isHidden  Boolean  @default(false)
-  replies   Comment[]
+  replies   Comment[] @relation("CommentReplies")
   parentId  String?
   parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id])
   createdAt DateTime @default(now())

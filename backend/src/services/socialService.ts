@@ -11,6 +11,12 @@ export const socialService = {
     });
   },
 
+  async getFacebookPage(id: string) {
+    return prisma.facebookPage.findUnique({
+      where: { id },
+    });
+  },
+
   async getFacebookPages(userId: string) {
     return prisma.facebookPage.findMany({
       where: { userId },
