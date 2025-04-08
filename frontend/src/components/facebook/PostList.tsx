@@ -50,7 +50,18 @@ const PostList: React.FC<PostListProps> = ({ pageId, onPostSelect }) => {
     try {
       setLoading(true);
       const response = await axios.get<FacebookResponse>(`/api/facebook/pages/${pageId}/posts`);
-      setPosts(response.data.data || []);
+      if (response.data && Array.isArray(response.data.data)) {
+        setPosts(response.data.data);
+      } else {
+        setPosts([]);
+        toast({
+          title: 'Warning',
+          description: 'No posts data available',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -104,7 +115,7 @@ const PostList: React.FC<PostListProps> = ({ pageId, onPostSelect }) => {
               </CardHeader>
               <CardBody>
                 <Text mb={4}>{post.message}</Text>
-                {post.comments && post.comments.data && post.comments.data.length > 0 && (
+                {post.comments && Array.isArray(post.comments.data) && post.comments.data.length > 0 && (
                   <Box>
                     <Heading size="sm" mb={2}>Comments</Heading>
                     <VStack align="stretch" spacing={2}>

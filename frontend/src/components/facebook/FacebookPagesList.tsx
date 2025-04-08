@@ -52,8 +52,8 @@ const FacebookPagesList: React.FC<FacebookPagesListProps> = ({ onPageSelect }) =
 
   const handleLoadPosts = async (pageId: string) => {
     try {
-      const response = await axios.get(`/api/facebook/pages/${pageId}/posts`);
       onPageSelect(pageId);
+      const response = await axios.get(`/api/facebook/pages/${pageId}/posts`);
       toast({
         title: 'Success',
         description: 'Posts loaded successfully',
